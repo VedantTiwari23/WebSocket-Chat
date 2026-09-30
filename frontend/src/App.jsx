@@ -1,8 +1,10 @@
+import { useEffect ,useRef} from 'react';
 import { useState } from 'react';
+import { connectWS } from './websocket';
 
 
 export default function App() {
-
+    const socket=useRef(null);//useRef isiliye liye kyuki connection ke baad koi state change nhi ho rha to useState leene ka koi faida nhi
     const [userName, setUserName] = useState('');
     const [showNamePopup, setShowNamePopup] = useState(true);
     const [inputName, setInputName] = useState('');
@@ -11,7 +13,9 @@ export default function App() {
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState('');
 
-    
+    useEffect(()=>{
+        socket.current=connectWS();//.current useRef me assign karte hai
+    },[]);
 
     // FORMAT TIMESTAMP TO HH:MM FOR MESSAGES
     function formatTime(ts) {
