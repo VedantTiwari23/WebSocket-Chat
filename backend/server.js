@@ -37,6 +37,11 @@ io.on('connection',(socket)=>{
         socket.to(room).emit('typing',userName);
     });
 
+    socket.on('stopTyping',(userName)=>{
+        //broadcast
+        socket.to(room).emit('stopTyping',userName);
+    });
+
 });
 
 const PORT=3001;

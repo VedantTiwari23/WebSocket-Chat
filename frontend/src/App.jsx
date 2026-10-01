@@ -41,6 +41,11 @@ export default function App() {
                     return prev
                 }
             });
+        });
+
+        //listening from server
+        socket.current.on('stopTyping',(userName)=>{
+            setTypers((prev)=>prev.filter((typer)=>typer != userName))
         })
     },[]);
 
@@ -48,6 +53,9 @@ export default function App() {
     useEffect(()=>{
         if(text){
             socket.current.emit('typing',userName);
+            setTimeout(()=>{
+                socket.current.emit('stopTyping',userName);
+            },1111);
         }
 
     },[text,userName])//jaise koi type krega wasie emit hoga
