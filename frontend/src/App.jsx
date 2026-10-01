@@ -8,14 +8,49 @@ export default function App() {
     const [userName, setUserName] = useState('');
     const [showNamePopup, setShowNamePopup] = useState(true);
     const [inputName, setInputName] = useState('');
-    
+    const [typers,setTypers]=useState([]);
 
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState('');
 
     useEffect(()=>{
         socket.current=connectWS();//.current useRef me assign karte hai
+
+        socket.current.on('connect',()=>{
+            //yha krne se page pr aate hi emit kr de rha hai bina username liye tho wo undefined aa rha hai
+            // socket.current.emit('joinRoom',userName)
+            socket.current.on('roomNotice',(userName)=>{
+                console.log(userName,'joined the grp');
+            });
+            //receive the msg back from the server
+            socket.current.on('chatMsg',(msg)=>{
+                console.log('msg',msg);
+                //push to existing msg list
+                setMessages((prev)=>[...prev,msg])
+            })
+        })
+        //listen kr rhe hai sever se jo aaiya hai
+        socket.current.on('typing',(userName)=>{
+            setTypers((prev)=>{
+                const isExist=prev.find((typer)=>typer===userName);
+                //ye nhi krte tho jitna baar bhi user word type krta wo upar name baar baar repeat hota
+                if(!isExist){
+                    return [...prev,userName]
+                }
+                else{
+                    return prev
+                }
+            });
+        })
     },[]);
+
+    //typing ke liye useEffect kr rha hu mtlb agr koi kuch type krega to upar dikhna chaiye kon kr rha hai
+    useEffect(()=>{
+        if(text){
+            socket.current.emit('typing',userName);
+        }
+
+    },[text,userName])//jaise koi type krega wasie emit hoga
 
     // FORMAT TIMESTAMP TO HH:MM FOR MESSAGES
     function formatTime(ts) {
@@ -30,7 +65,9 @@ export default function App() {
         e.preventDefault();
         const trimmed = inputName.trim();
         if (!trimmed) return;
-
+        
+        //yha isiliye kiye kyuki jab submit ho username tab hi console par aaiye "user has joined"
+        socket.current.emit('joinRoom',trimmed)//trimmed name hi hai bs trim kr diye hai
       
 
         setUserName(trimmed);
@@ -50,6 +87,9 @@ export default function App() {
             ts: Date.now(),
         };
         setMessages((m) => [...m, msg]);
+
+        //emit the msg to the server
+        socket.current.emit("chatMsg",msg);
 
 
         setText('');
@@ -104,10 +144,10 @@ export default function App() {
                                 Realtime group chat
                             </div>
 
-                            
-                                <div className="text-xs text-gray-500">
-                                    Someone is typing...
-                                </div>
+                                {typers.length ? <div className="text-xs text-gray-500">
+                                    {typers.join(', ')} is typing...
+                                </div> : ""}
+                                
                             
                         </div>
                         <div className="text-sm text-gray-500">
