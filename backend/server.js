@@ -23,7 +23,13 @@ io.on('connection',(socket)=>{
         
         
         //usko chor kr sbko jaiyega
-        socket.to(room).emit('roomNotice',userName);
+        // socket.to(room).emit('roomNotice',userName);
+        socket.to(room).emit('roomNotice',{
+            id: Date.now(),
+            type:'system',
+            text:`${userName} joined the grp😇`,
+            ts: Date.now()
+        });
 
     });
 
