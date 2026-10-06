@@ -19,6 +19,9 @@ io.on('connection',(socket)=>{
     socket.on('joinRoom',async (userName)=>{
         console.log(`${userName} is joining the grp`);
         
+        //store username with this socket..
+        socket.userName=userName;
+
         await socket.join(room);//group naam ke room pr join ho jaiyega ..or join promise return krta hai to async krna hoga
         
         
@@ -47,6 +50,18 @@ io.on('connection',(socket)=>{
         //broadcast
         socket.to(room).emit('stopTyping',userName);
     });
+
+    //USER DISCONNECTED
+    socket.on('disconnect',()=>{
+        console.log(`${socket.userName} disconnected`);
+
+        socket.to(room).emit('roomNotice',{
+            id: Date.now(),
+            type:'system',
+            text:`${socket.userName} left the grp 👋🏽`,
+            ts: Date.now()
+        });
+    })
 
 });
 
